@@ -3,36 +3,45 @@ import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-# --- 🔧 Fix import paths dynamically ---
-# Allow imports whether running from project root or backend/
+# ----------------------------
+# 🔧 Add backend folder to sys.path dynamically
+# This ensures imports work no matter where you run the server
 current_dir = os.path.dirname(os.path.abspath(__file__))
-parent_dir = os.path.dirname(current_dir)
-if parent_dir not in sys.path:
-    sys.path.append(parent_dir)
+backend_dir = os.path.dirname(current_dir)
+if backend_dir not in sys.path:
+    sys.path.append(backend_dir)
+# ----------------------------
 
-# --- 🌐 Import routers safely ---
-try:
-    from backend.app.routers import buckets, objects  # if running from project root
-except ModuleNotFoundError:
-    from app.routers import buckets, objects          # if running from backend folder
+# ----------------------------
+# 🌐 Import routers safely
+from app.routers import buckets, objects
+# ----------------------------
 
-# --- 🚀 Initialize app ---
-app = FastAPI(title="Loco3 - Local S3 Alternative", version="1.0.0")
+# ----------------------------
+# 🚀 Initialize FastAPI app
+app = FastAPI(
+    title="Loco3 - Self-Hosted S3 Alternative",
+    version="1.0.0",
+    description="Local file storage system using FastAPI + SQLite"
+)
 
-# --- 🌍 CORS (so React frontend can connect) ---
+# ----------------------------
+# 🌍 CORS Middleware
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=["*"],  # change to your frontend URL in production
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
-# --- 🔗 Mount routers ---
+# ----------------------------
+# 🔗 Include routers
 app.include_router(buckets.router, prefix="/api/buckets", tags=["Buckets"])
 app.include_router(objects.router, prefix="/api/objects", tags=["Objects"])
 
-# --- 🏠 Health endpoint ---
+# ----------------------------
+# 🏠 Health check endpoint
 @app.get("/api/health")
 async def health():
     return {"status": "ok", "service": "Loco3"}
