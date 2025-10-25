@@ -1,26 +1,6 @@
-import sys
-import os
-import sys, os
-sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from backend.app.routers import buckets, objects
-
-
-# ----------------------------
-# 🔧 Add backend folder to sys.path dynamically
-# This ensures imports work no matter where you run the server
-current_dir = os.path.dirname(os.path.abspath(__file__))
-backend_dir = os.path.dirname(current_dir)
-if backend_dir not in sys.path:
-    sys.path.append(backend_dir)
-# ----------------------------
-
-# ----------------------------
-# 🌐 Import routers safely
-from app.routers import buckets, objects
-# ----------------------------
+from .routers import buckets, objects
 
 # ----------------------------
 # 🚀 Initialize FastAPI app
