@@ -1,9 +1,10 @@
+import React from "react";
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Sidebar from "./components/Sidebar";
 import Dashboard from "./pages/Dashboard";
 import Settings from "./pages/Settings";
-
+import UploadModal from "./components/UploadModal";
 export default function App() {
   return (
     <Router>
