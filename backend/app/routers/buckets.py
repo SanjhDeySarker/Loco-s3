@@ -1,21 +1,25 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
-from .. import crud, schemas, database
+from .. import crud, schemas
+from ..database import get_db
 
 router = APIRouter(prefix="/api/buckets", tags=["buckets"])
-get_db = database.get_db
 
-@router.get("/", response_model=list[schemas.Bucket])
+@router.get("", response_model=list[schemas.BucketOut])
 def list_buckets(db: Session = Depends(get_db)):
-    return crud.get_buckets(db)
+    return crud.list_buckets(db)
 
-@router.post("/", response_model=schemas.Bucket)
-def create_bucket(bucket: schemas.BucketCreate, db: Session = Depends(get_db)):
-    return crud.create_bucket(db, bucket)
+@router.post("", response_model=schemas.BucketOut)
+def create_bucket(payload: schemas.BucketCreate, db: Session = Depends(get_db)):
+    try:
+        b = crud.create_bucket(db, payload.name)
+        return b
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
 
-@router.delete("/{bucket_id}", response_model=schemas.Bucket)
-def delete_bucket(bucket_id: int, db: Session = Depends(get_db)):
-    bucket = crud.delete_bucket(db, bucket_id)
-    if not bucket:
+@router.delete("/{bucket_name}")
+def delete_bucket(bucket_name: str, db: Session = Depends(get_db)):
+    ok = crud.delete_bucket(db, bucket_name)
+    if not ok:
         raise HTTPException(status_code=404, detail="Bucket not found")
-    return bucket
+    return {"message": "deleted"}
