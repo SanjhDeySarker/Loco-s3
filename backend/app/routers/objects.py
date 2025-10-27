@@ -7,7 +7,7 @@ from ..utils import safe_join
 from fastapi.responses import StreamingResponse
 import os
 
-router = APIRouter(prefix="/api", tags=["objects"])
+router = APIRouter()
 
 @router.get("/{bucket_name}", response_model=schemas.ObjectList)
 def list_objects(bucket_name: str, page: int=1, per_page: int=50, prefix: str | None = None, db: Session = Depends(get_db)):

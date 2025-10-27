@@ -3,7 +3,7 @@ from sqlalchemy.orm import Session
 from .. import crud, schemas
 from ..database import get_db
 
-router = APIRouter(prefix="/api/buckets", tags=["buckets"])
+router = APIRouter()
 
 @router.get("", response_model=list[schemas.BucketOut])
 def list_buckets(db: Session = Depends(get_db)):
