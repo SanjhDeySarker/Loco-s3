@@ -1,32 +1,29 @@
 from pydantic import BaseModel
-from datetime import datetime
+from typing import Optional, List
+import datetime
 
-class BucketBase(BaseModel):
+class BucketCreate(BaseModel):
     name: str
 
-class BucketCreate(BucketBase):
-    pass
-
-class Bucket(BucketBase):
+class BucketOut(BaseModel):
     id: int
-    created_at: datetime
-
+    name: str
+    created_at: datetime.datetime
     class Config:
         orm_mode = True
 
-class ObjectBase(BaseModel):
+class ObjectOut(BaseModel):
+    id: int
     key: str
-
-class ObjectCreate(ObjectBase):
-    pass
-
-class Object(ObjectBase):
-    id: int
-    bucket_id: int
-    size: int
-    mime_type: str
-    created_at: datetime
-    modified_at: datetime
-
+    size: Optional[int]
+    mime_type: Optional[str]
+    created_at: datetime.datetime
+    modified_at: Optional[datetime.datetime]
     class Config:
         orm_mode = True
+
+class ObjectList(BaseModel):
+    items: List[ObjectOut]
+    total: int
+    page: int
+    per_page: int
