@@ -1,18 +1,51 @@
 import os
-from pathlib import Path
+import tempfile
+import shutil
+import magic
+from .config import settings
 
-STORAGE_PATH = "storage"
-
-def safe_path(bucket_name: str, key: str) -> str:
+def safe_join(base: str, *paths: str) -> str:
     """
-    Ensure no path traversal: joins bucket_name and key safely.
+    Join base and paths and ensure resulting path is inside base.
+    Raises ValueError if path traversal detected.
     """
-    bucket_path = Path(STORAGE_PATH) / bucket_name
-    full_path = bucket_path / key
-    if not full_path.resolve().is_relative_to(bucket_path.resolve()):
-        raise ValueError("Invalid key: path traversal detected")
-    return str(full_path)
+    base = os.path.abspath(base)
+    joined = os.path.abspath(os.path.join(base, *paths))
+    if not joined.startswith(base + os.sep) and joined != base:
+        raise ValueError("Unsafe path detected")
+    return joined
 
-def ensure_bucket_dir(bucket_name: str):
-    path = Path(STORAGE_PATH) / bucket_name
-    path.mkdir(parents=True, exist_ok=True)
+def atomic_save(stream, dest_path: str, chunk_size: int = 1024*1024):
+    """
+    Save an async-like stream or fileobj to dest_path atomically.
+    'stream' should be a file-like object with read() method or an UploadFile from FastAPI.
+    We'll accept objects with .read() that may be async — but for simplicity we call .read() synchronously here.
+    """
+    dest_dir = os.path.dirname(dest_path)
+    os.makedirs(dest_dir, exist_ok=True)
+    fd, tmp = tempfile.mkstemp(dir=dest_dir)
+    os.close(fd)
+    try:
+        with open(tmp, "wb") as f:
+            # stream might be FastAPI UploadFile (has read). We'll loop.
+            while True:
+                chunk = stream.read(chunk_size)
+                if not chunk:
+                    break
+                f.write(chunk)
+        # atomic replace
+        os.replace(tmp, dest_path)
+    except Exception:
+        try:
+            os.remove(tmp)
+        except Exception:
+            pass
+        raise
+
+def detect_mime(path: str) -> str:
+    try:
+        m = magic.Magic(mime=True)
+        return m.from_file(path)
+    except Exception:
+        # fallback
+        return "application/octet-stream"
