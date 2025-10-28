@@ -1,6 +1,8 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from .routers import buckets, objects
+from .database import engine, Base
+from . import models  # Import models so they are registered with Base
 
 # ----------------------------
 # 🚀 Initialize FastAPI app
@@ -9,6 +11,12 @@ app = FastAPI(
     version="1.0.0",
     description="Local file storage system using FastAPI + SQLite"
 )
+
+# ----------------------------
+# 🗄️ Create database tables on startup
+@app.on_event("startup")
+def startup_event():
+    Base.metadata.create_all(bind=engine)
 
 # ----------------------------
 # 🌍 CORS Middleware

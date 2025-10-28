@@ -1,8 +1,7 @@
 from sqlalchemy import Column, Integer, String, DateTime, ForeignKey
-from sqlalchemy.orm import declarative_base, relationship
+from sqlalchemy.orm import relationship
 import datetime
-
-Base = declarative_base()
+from .database import Base
 
 class Bucket(Base):
     __tablename__ = "buckets"
