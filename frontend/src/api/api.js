@@ -1,19 +1,19 @@
 import axios from "axios";
 
-const API = axios.create({ baseURL: "http://localhost:8000/api" });
+const api = axios.create({
+  baseURL: import.meta.env.VITE_API_BASE_URL,
+});
 
-export const getBuckets = () => API.get("/buckets");
-export const createBucket = (name) => API.post("/buckets", { name });
-export const deleteBucket = (id) => API.delete(`/buckets/${id}`);
-
-export const uploadObject = (bucketName, file) => {
-  const formData = new FormData();
-  formData.append("file", file);
-  return API.post(`/objects/${bucketName}`, formData, {
+export const listBuckets = () => api.get("/buckets");
+export const createBucket = (bucket) => api.post(`/buckets/${bucket}`);
+export const uploadFile = (bucket, file) =>
+  api.put(`/buckets/${bucket}/${file.name}`, file, {
     headers: { "Content-Type": "multipart/form-data" },
   });
-};
+export const listFiles = (bucket) => api.get(`/buckets/${bucket}/objects`);
+export const downloadFile = (bucket, name) =>
+  api.get(`/buckets/${bucket}/${name}`, { responseType: "blob" });
+export const deleteFile = (bucket, name) =>
+  api.delete(`/buckets/${bucket}/${name}`);
 
-export const listObjects = (bucketName) => API.get(`/objects/${bucketName}`);
-export const deleteObject = (bucketName, key) => API.delete(`/objects/${bucketName}/${key}`);
-export const downloadObject = (bucketName, key) => `${API.defaults.baseURL}/objects/${bucketName}/${key}`;
+export default api;
