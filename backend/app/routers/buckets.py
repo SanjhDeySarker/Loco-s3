@@ -1,25 +1,23 @@
-from fastapi import APIRouter, Depends, HTTPException
-from sqlalchemy.orm import Session
-from .. import crud, schemas
-from ..database import get_db
+from fastapi import APIRouter, HTTPException
+from app import crud, schemas
 
-router = APIRouter()
+router = APIRouter(prefix="/api/buckets", tags=["Buckets"])
 
-@router.get("", response_model=list[schemas.BucketOut])
-def list_buckets(db: Session = Depends(get_db)):
-    return crud.list_buckets(db)
+@router.get("/", response_model=list[schemas.Bucket])
+def list_buckets():
+    """List all buckets"""
+    return crud.list_buckets()
 
-@router.post("", response_model=schemas.BucketOut)
-def create_bucket(payload: schemas.BucketCreate, db: Session = Depends(get_db)):
+@router.post("/", response_model=schemas.Bucket)
+def create_bucket(bucket: schemas.BucketCreate):
+    """Create a new bucket"""
     try:
-        b = crud.create_bucket(db, payload.name)
-        return b
+        return crud.create_bucket(bucket.name)
     except ValueError as e:
         raise HTTPException(status_code=400, detail=str(e))
 
 @router.delete("/{bucket_name}")
-def delete_bucket(bucket_name: str, db: Session = Depends(get_db)):
-    ok = crud.delete_bucket(db, bucket_name)
-    if not ok:
-        raise HTTPException(status_code=404, detail="Bucket not found")
-    return {"message": "deleted"}
+def delete_bucket(bucket_name: str):
+    """Delete a bucket and all its contents"""
+    crud.delete_bucket(bucket_name)
+    return {"message": f"Bucket '{bucket_name}' deleted successfully."}
