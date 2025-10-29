@@ -1,36 +1,55 @@
-import { useState, useEffect } from "react";
-import { deleteBucket, listObjects } from "../api/api";
-import ObjectTable from "./objectTable";
+import React, { useState, useEffect } from "react";
+import { listBuckets, createBucket } from "../api/api";
 
-export default function BucketList({ buckets, refresh }) {
-  const [selectedBucket, setSelectedBucket] = useState(null);
-  const [objects, setObjects] = useState([]);
+export default function BucketList({ onSelect }) {
+  const [buckets, setBuckets] = useState([]);
+  const [newBucket, setNewBucket] = useState("");
 
-  const fetchObjects = async (bucketName) => {
-    const res = await listObjects(bucketName);
-    setObjects(res.data);
+  const fetchBuckets = async () => {
+    const res = await listBuckets();
+    setBuckets(res.data);
+  };
+
+  const handleCreate = async () => {
+    if (!newBucket) return;
+    await createBucket(newBucket);
+    setNewBucket("");
+    fetchBuckets();
   };
 
   useEffect(() => {
-    if (selectedBucket) fetchObjects(selectedBucket.name);
-  }, [selectedBucket]);
+    fetchBuckets();
+  }, []);
 
   return (
-    <div className="flex">
-      <div className="w-1/3 border-r pr-2">
+    <div className="p-4 border rounded-xl bg-gray-50 shadow">
+      <h2 className="text-lg font-semibold mb-2">Buckets</h2>
+      <div className="flex mb-3">
+        <input
+          type="text"
+          placeholder="New bucket name"
+          value={newBucket}
+          onChange={(e) => setNewBucket(e.target.value)}
+          className="border px-2 py-1 mr-2 rounded"
+        />
+        <button
+          onClick={handleCreate}
+          className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700"
+        >
+          Create
+        </button>
+      </div>
+      <ul>
         {buckets.map((b) => (
-          <div key={b.id} className="flex justify-between items-center mb-2">
-            <span className="cursor-pointer" onClick={() => setSelectedBucket(b)}>{b.name}</span>
-            <button
-              onClick={async () => { await deleteBucket(b.id); refresh(); if(selectedBucket?.id===b.id) setSelectedBucket(null); }}
-              className="text-red-500"
-            >Delete</button>
-          </div>
+          <li
+            key={b}
+            onClick={() => onSelect(b)}
+            className="cursor-pointer hover:underline text-blue-600"
+          >
+            {b}
+          </li>
         ))}
-      </div>
-      <div className="w-2/3 pl-4">
-        {selectedBucket && <ObjectTable bucket={selectedBucket} objects={objects} refresh={() => fetchObjects(selectedBucket.name)} />}
-      </div>
+      </ul>
     </div>
   );
 }
