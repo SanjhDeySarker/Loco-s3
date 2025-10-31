@@ -37,4 +37,4 @@ export const uploadObject = async (bucketName, file) => {
 export const deleteObject = async (bucketName, objectKey) => {
   const res = await axios.delete(`${API_BASE_URL}/${bucketName}/${objectKey}`);
   return res.data;
-
+};
